@@ -870,6 +870,45 @@ function showToast(message, type = 'info') {
 
 // --- EVENT LISTENERS ---
 function setupEventListeners() {
+    // Mobile Navigation & Sidebar Controls
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebar = document.querySelector('.sidebar');
+
+    function openSidebar() {
+        if (sidebar) sidebar.classList.add('active');
+        if (sidebarOverlay) sidebarOverlay.classList.add('active');
+        document.body.classList.add('sidebar-open');
+    }
+
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.remove('active');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+    }
+
+    window.closeSidebar = closeSidebar;
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (sidebar && sidebar.classList.contains('active')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+    }
+
+    if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener('click', closeSidebar);
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
     // Navigation Tabs
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
@@ -1079,6 +1118,9 @@ function toggleTheme() {
 
 // --- TAB SWITCHING ---
 async function switchTab(tabId) {
+    if (typeof window.closeSidebar === 'function') {
+        window.closeSidebar();
+    }
     state.activeTab = tabId;
 
     // Update Nav UI
