@@ -1903,12 +1903,14 @@ async function loadMyLoans() {
 
 function renderMyLoansTable(loansList) {
     const tbody = document.getElementById('myLoansTableBody');
-    if (!loansList || loansList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Bạn chưa mượn cuốn sách nào từ thư viện. Dữ liệu tài khoản của bạn hoàn toàn mới!</td></tr>`;
+    const activeLoans = (loansList || []).filter(l => l.status !== 'Đã trả');
+
+    if (!activeLoans || activeLoans.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Bạn không có cuốn sách nào đang mượn từ thư viện.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = loansList.map(loan => {
+    tbody.innerHTML = activeLoans.map(loan => {
         let statusBadge = `<span class="badge badge-info">${loan.status}</span>`;
         if (loan.status === 'Đang mượn') statusBadge = `<span class="badge badge-info"><i class="fa-solid fa-clock"></i> Đang mượn</span>`;
         if (loan.status === 'Đã trả') statusBadge = `<span class="badge badge-success"><i class="fa-solid fa-check"></i> Đã trả</span>`;
@@ -1942,6 +1944,7 @@ function filterLoans() {
     const status = document.getElementById('loanStatusFilter').value;
 
     const filtered = state.loans.filter(l => {
+        if (l.status === 'Đã trả') return false; // Completely hide returned loans from history table
         const matchesQ = !q || (
             l.borrow_code.toLowerCase().includes(q) ||
             l.reader_name.toLowerCase().includes(q) ||
@@ -1957,15 +1960,16 @@ function filterLoans() {
 
 function renderLoansTable(loansList) {
     const tbody = document.getElementById('loansTableBody');
-    if (!loansList || loansList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">Không tìm thấy phiếu mượn nào.</td></tr>`;
+    const activeLoans = (loansList || []).filter(l => l.status !== 'Đã trả');
+
+    if (!activeLoans || activeLoans.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">Không có phiếu mượn nào đang lưu thông.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = loansList.map(loan => {
+    tbody.innerHTML = activeLoans.map(loan => {
         let statusBadge = `<span class="badge badge-info">${loan.status}</span>`;
         if (loan.status === 'Đang mượn') statusBadge = `<span class="badge badge-info"><i class="fa-solid fa-clock"></i> Đang mượn</span>`;
-        if (loan.status === 'Đã trả') statusBadge = `<span class="badge badge-success"><i class="fa-solid fa-check"></i> Đã trả</span>`;
         if (loan.status === 'Quá hạn') statusBadge = `<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Quá hạn</span>`;
 
         return `
@@ -1991,18 +1995,12 @@ function renderLoansTable(loansList) {
                     ` : '<span class="text-muted">0 VNĐ</span>'}
                 </td>
                 <td>
-                    ${loan.status !== 'Đã trả' ? `
-                        <button onclick="processReturn(${loan.id})" class="btn btn-sm btn-success" title="Trả sách">
-                            <i class="fa-solid fa-rotate-left"></i> Trả sách
-                        </button>
-                        <button onclick="processRenew(${loan.id})" class="btn btn-sm btn-outline" title="Gia hạn +7 ngày">
-                            <i class="fa-solid fa-calendar-plus"></i> Gia hạn
-                        </button>
-                    ` : `
-                        <button onclick="openPrintTicket(${loan.id})" class="btn btn-sm btn-outline" title="In phiếu mượn">
-                            <i class="fa-solid fa-print"></i> In phiếu
-                        </button>
-                    `}
+                    <button onclick="processReturn(${loan.id})" class="btn btn-sm btn-success" title="Trả sách">
+                        <i class="fa-solid fa-rotate-left"></i> Trả sách
+                    </button>
+                    <button onclick="processRenew(${loan.id})" class="btn btn-sm btn-outline" title="Gia hạn +7 ngày">
+                        <i class="fa-solid fa-calendar-plus"></i> Gia hạn
+                    </button>
                     ${loan.fine_amount > 0 && loan.fine_status === 'Chưa nộp' ? `
                         <button onclick="processPayFine(${loan.id})" class="btn btn-sm btn-warning" title="Nộp tiền phạt">
                             <i class="fa-solid fa-money-bill"></i> Nộp phạt
@@ -2055,10 +2053,11 @@ async function handleLoanSubmit(e) {
 }
 
 async function processReturn(loanId) {
-    if (!confirm("Xác nhận hoàn tất thủ tục TRẢ SÁCH cho phiếu mượn này?")) return;
+    if (!confirm("Xác nhận hoàn tất thủ tục TRẢ SÁCH cho phiếu mượn này? (Phiếu mượn sẽ được xóa hoàn toàn khỏi danh sách)")) return;
     try {
         const res = await fetchAPI(`/loans/${loanId}/return`, 'POST');
         if (res && res.message) showToast(res.message, 'success');
+        state.loans = (state.loans || []).filter(l => l.id != loanId);
         await loadLoans();
         await loadBooks();
         await loadDashboardData();

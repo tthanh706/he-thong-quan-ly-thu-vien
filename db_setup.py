@@ -241,8 +241,6 @@ def init_db():
         ('PM001', 1, 1, '2026-08-15', '2026-08-29', None, 'Đang mượn', 0, 0, 'N/A', 'Mượn phục vụ bài tập lớn Python'),
         ('PM002', 2, 2, '2026-08-20', '2026-09-03', None, 'Đang mượn', 1, 0, 'N/A', 'Đã gia hạn 1 lần (+7 ngày)'),
         ('PM003', 2, 5, '2026-08-01', '2026-08-15', None, 'Quá hạn', 0, 140000, 'Chưa nộp', 'Quá hạn 28 ngày'),
-        ('PM004', 3, 3, '2026-08-10', '2026-08-24', '2026-08-22', 'Đã trả', 0, 0, 'N/A', 'Trả sách đúng hạn'),
-        ('PM005', 2, 7, '2026-07-01', '2026-07-15', '2026-07-20', 'Đã trả', 0, 25000, 'Đã nộp', 'Quá hạn 5 ngày - đã nộp tiền phạt'),
         ('PM006', 1, 6, '2026-08-25', '2026-09-08', None, 'Đang mượn', 0, 0, 'N/A', 'Mượn nghiên cứu Quản trị Kinh doanh')
     ]
     cursor.executemany('''
@@ -253,7 +251,7 @@ def init_db():
     # 6. Fine Logs
     cursor.execute('''
     INSERT INTO fine_logs (borrow_id, reader_id, amount, reason, paid_at, payment_method)
-    VALUES (5, 2, 25000, 'Phạt trả quá hạn 5 ngày cho sách MS004', '2026-07-20 10:30:00', 'Tiền mặt')
+    VALUES (1, 1, 105000, 'Phạt trả quá hạn cho sách MS001', '2026-09-10 10:30:00', 'Tiền mặt')
     ''')
 
     # 7. Reservations
