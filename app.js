@@ -77,11 +77,16 @@ async function initApp() {
             }
         });
 
-        // Filter out returned loans from localStorage so returned books disappear from list
+        // Filter out returned loans and shorten long borrow_codes from localStorage
         const cachedLoans = localStorage.getItem('lib_mock_loans');
         if (cachedLoans) {
             const parsed = JSON.parse(cachedLoans);
-            const activeOnly = parsed.filter(l => l.status !== 'Đã trả');
+            const activeOnly = parsed.filter(l => l.status !== 'Đã trả').map((l, idx) => {
+                if (l.borrow_code && l.borrow_code.length > 8) {
+                    l.borrow_code = `PM${(idx + 1).toString().padStart(3, '0')}`;
+                }
+                return l;
+            });
             localStorage.setItem('lib_mock_loans', JSON.stringify(activeOnly));
         }
     } catch (e) {}
@@ -597,7 +602,7 @@ function getMockData(endpoint, method = 'GET', data = null) {
             
             const newLoan = {
                 id: Date.now(),
-                borrow_code: `PM${Date.now().toString().slice(-6)}`,
+                borrow_code: `PM${(mockStore.loans.length + 1).toString().padStart(3, '0')}`,
                 reader_id: data.reader_id,
                 reader_name: readerObj ? readerObj.full_name : 'Độc giả mượn',
                 reader_code: readerObj ? readerObj.reader_code : 'DG00',

@@ -765,35 +765,39 @@ button, input, select, textarea {
     max-width: 100%;
     -webkit-overflow-scrolling: touch;
     border-radius: var(--radius-md);
-    padding-bottom: 0.5rem;
 }
 
 .data-table {
     width: 100%;
-    min-width: 980px;
     border-collapse: collapse;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: 0.83rem;
 }
 
 .data-table th {
     background: rgba(255, 255, 255, 0.03);
     color: var(--text-secondary);
     font-weight: 600;
-    padding: 0.85rem 1rem;
+    padding: 0.65rem 0.6rem;
     border-bottom: 1px solid var(--border-color);
     white-space: nowrap;
+    font-size: 0.8rem;
 }
 
 .data-table td {
-    padding: 0.95rem 1rem;
+    padding: 0.65rem 0.6rem;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
 }
 
 .data-table th:last-child, .data-table td:last-child {
-    padding-right: 1.5rem;
     white-space: nowrap;
+}
+
+.data-table td .btn-sm {
+    padding: 0.32rem 0.55rem;
+    font-size: 0.76rem;
+    font-weight: 600;
 }
 
 .data-table tbody tr:hover {
