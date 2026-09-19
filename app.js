@@ -551,11 +551,16 @@ function getMockData(endpoint, method = 'GET', data = null) {
             if ((loan.renewal_count || 0) >= 2) throw new Error("Phiếu mượn này đã đạt giới hạn tối đa 2 lần gia hạn!");
 
             const todayStr = new Date().toISOString().split('T')[0];
-            const todayDt = new Date(todayStr);
-            const currentDue = new Date(loan.due_date || todayStr);
+            
+            // If loan is overdue (due_date < todayStr), extend +7 days from TODAY
+            // If loan is not overdue (due_date >= todayStr), extend +7 days from existing due_date
+            let baseDt;
+            if (loan.due_date && loan.due_date >= todayStr) {
+                baseDt = new Date(loan.due_date);
+            } else {
+                baseDt = new Date(todayStr);
+            }
 
-            // Extend 7 days from TODAY if overdue, or from current due_date if not overdue
-            const baseDt = currentDue > todayDt ? currentDue : todayDt;
             baseDt.setDate(baseDt.getDate() + 7);
             const newDueStr = baseDt.toISOString().split('T')[0];
 
@@ -566,7 +571,7 @@ function getMockData(endpoint, method = 'GET', data = null) {
             loan.fine_status = 'N/A';
 
             saveMockStore();
-            return { message: `Gia hạn thành công! Hạn trả mới: ${newDueStr} (Lần gia hạn ${loan.renewal_count}/2). Trạng thái: Đang mượn` };
+            return { message: `Gia hạn thành công! Hạn trả mới: ${newDueStr} (Lần gia hạn ${loan.renewal_count}/2). Trạng thái đã chuyển sang 'Đang mượn'.` };
         }
 
         // Pay fine
@@ -1851,7 +1856,22 @@ async function toggleReaderStatus(id, newStatus) {
 // --- LOANS & FINES MANAGEMENT (STAFF VIEW & MY LOANS READER VIEW) ---
 async function loadLoans() {
     try {
-        state.loans = await fetchAPI('/loans');
+        const rawLoans = await fetchAPI('/loans');
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        state.loans = (rawLoans || []).map(loan => {
+            if (loan.status !== 'Đã trả') {
+                if (loan.due_date && loan.due_date < todayStr) {
+                    loan.status = 'Quá hạn';
+                } else if (loan.due_date && loan.due_date >= todayStr) {
+                    loan.status = 'Đang mượn';
+                    loan.fine_amount = 0;
+                    loan.fine_status = 'N/A';
+                }
+            }
+            return loan;
+        });
+
         filterLoans();
     } catch (err) {
         console.error("Failed loading loans", err);
