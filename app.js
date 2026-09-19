@@ -91,6 +91,7 @@ async function initApp() {
         }
     } catch (e) {}
 
+    initTheme();
     setupEventListeners();
     try {
         await loadCategories();
@@ -1123,14 +1124,31 @@ function updateUserUI() {
 function toggleTheme() {
     const body = document.body;
     const btn = document.getElementById('themeToggleBtn');
-    if (body.classList.contains('theme-dark')) {
-        body.classList.remove('theme-dark');
-        body.classList.add('theme-light');
-        btn.innerHTML = '<i class="fa-solid fa-sun"></i> <span>Giao diện Sáng</span>';
-    } else {
+    if (body.classList.contains('theme-light')) {
         body.classList.remove('theme-light');
         body.classList.add('theme-dark');
-        btn.innerHTML = '<i class="fa-solid fa-moon"></i> <span>Giao diện Tối</span>';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-moon"></i> <span>Giao diện Tối</span>';
+        localStorage.setItem('lib_theme', 'dark');
+    } else {
+        body.classList.remove('theme-dark');
+        body.classList.add('theme-light');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-sun"></i> <span>Giao diện Sáng</span>';
+        localStorage.setItem('lib_theme', 'light');
+    }
+}
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('lib_theme') || 'light';
+    const body = document.body;
+    const btn = document.getElementById('themeToggleBtn');
+    if (savedTheme === 'dark') {
+        body.classList.remove('theme-light');
+        body.classList.add('theme-dark');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-moon"></i> <span>Giao diện Tối</span>';
+    } else {
+        body.classList.remove('theme-dark');
+        body.classList.add('theme-light');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-sun"></i> <span>Giao diện Sáng</span>';
     }
 }
 
