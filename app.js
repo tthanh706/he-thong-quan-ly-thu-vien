@@ -116,6 +116,7 @@ function checkAuthState() {
 
         updateUserUI();
         applyRoleAccess();
+        resetAiChat();
         
         // Select initial tab based on role
         if (state.currentUser.role === 'reader') {
@@ -158,9 +159,10 @@ function handleLogout() {
     state.currentUser = null;
     showToast('Đã đăng xuất tài khoản thành công', 'info');
     
-    // Reset overlay form inputs
+    // Reset overlay form inputs & AI Chatbox
     document.getElementById('overlayUsername').value = '';
     document.getElementById('overlayPassword').value = '';
+    resetAiChat();
     
     checkAuthState();
 }
@@ -2267,6 +2269,28 @@ function formatAiResponse(text) {
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/\n/g, '<br>');
     return formatted;
+}
+
+function resetAiChat() {
+    const chatContainer = document.getElementById('aiChatMessages');
+    if (chatContainer) {
+        chatContainer.innerHTML = `
+            <div class="chat-message ai">
+                <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="bubble">
+                    Xin chào! Tôi là Trợ lý Trí tuệ Nhân tạo Đa năng tích hợp công nghệ RAG. Bạn có thể hỏi tôi bất kỳ câu hỏi nào:
+                    <ul>
+                        <li>🌐 <em>"Trí tuệ Nhân tạo RAG là gì và ứng dụng ra sao?"</em></li>
+                        <li>📖 <em>"Tìm giúp tôi sách học lập trình Python hoặc kỹ năng giao tiếp"</em></li>
+                        <li>💡 <em>"Giải thích định luật 3 Newton và cho ví dụ thực tế"</em></li>
+                        <li>❓ <em>"Quy định mượn trả, gia hạn và nộp phạt của thư viện là gì?"</em></li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+    const input = document.getElementById('aiChatInput');
+    if (input) input.value = '';
 }
 
 async function loadAiRecommendations() {
