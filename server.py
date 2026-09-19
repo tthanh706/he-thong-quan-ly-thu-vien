@@ -675,6 +675,9 @@ class LibraryAPIHandler(http.server.SimpleHTTPRequestHandler):
                 # Increment available stock
                 cursor.execute("UPDATE books SET available_qty = available_qty + 1 WHERE id = ?", (loan['book_id'],))
 
+                # Delete returned loan record from borrow_records so it disappears from history as requested
+                cursor.execute("DELETE FROM borrow_records WHERE id = ?", (loan_id,))
+
                 # Check if someone reserved this book
                 cursor.execute('''
                     SELECT res.*, r.full_name as reader_name 
@@ -690,9 +693,9 @@ class LibraryAPIHandler(http.server.SimpleHTTPRequestHandler):
 
                 conn.commit()
 
-                msg = f"Trả sách thành công! {res_msg}"
+                msg = f"Trả sách thành công! Phiếu mượn đã hoàn tất và xóa khỏi danh sách. {res_msg}"
                 if fine_amount > 0:
-                    msg += f" Sách bị trễ {days_overdue} ngày. Phạt: {fine_amount:,} VNĐ."
+                    msg += f" Sách bị trễ {days_overdue} ngày (Phạt {fine_amount:,} VNĐ)."
 
                 return self.send_json({"message": msg, "fine_amount": fine_amount})
 
@@ -714,18 +717,19 @@ class LibraryAPIHandler(http.server.SimpleHTTPRequestHandler):
                     return self.send_error_json("Sách này hiện đang có độc giả khác đặt trước, không thể gia hạn thêm!")
 
                 current_due = datetime.strptime(loan['due_date'], '%Y-%m-%d')
-                new_due = (current_due + timedelta(days=7)).strftime('%Y-%m-%d')
-                today_str = datetime.now().strftime('%Y-%m-%d')
-                new_status = 'Đang mượn' if new_due >= today_str else loan['status']
+                today_dt = datetime.now()
+                today_str = today_dt.strftime('%Y-%m-%d')
+                base_dt = current_due if loan['due_date'] >= today_str else datetime.strptime(today_str, '%Y-%m-%d')
+                new_due = (base_dt + timedelta(days=7)).strftime('%Y-%m-%d')
 
                 cursor.execute('''
                     UPDATE borrow_records
-                    SET due_date = ?, renewal_count = renewal_count + 1, status = ?
+                    SET due_date = ?, renewal_count = renewal_count + 1, status = 'Đang mượn', fine_amount = 0, fine_status = 'N/A'
                     WHERE id = ?
-                ''', (new_due, new_status, loan_id))
+                ''', (new_due, loan_id))
 
                 conn.commit()
-                return self.send_json({"message": f"Gia hạn thành công! Hạn trả mới: {new_due} (Lần gia hạn {loan['renewal_count'] + 1}/2)"})
+                return self.send_json({"message": f"Gia hạn thành công! Hạn trả mới: {new_due} (Lần gia hạn {loan['renewal_count'] + 1}/2). Trạng thái: Đang mượn"})
 
             # 7. Pay Fine
             elif re.match(r'^/api/loans/(\d+)/pay-fine$', path):

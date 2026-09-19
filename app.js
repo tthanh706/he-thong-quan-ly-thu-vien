@@ -76,6 +76,14 @@ async function initApp() {
                 localStorage.removeItem(key);
             }
         });
+
+        // Filter out returned loans from localStorage so returned books disappear from list
+        const cachedLoans = localStorage.getItem('lib_mock_loans');
+        if (cachedLoans) {
+            const parsed = JSON.parse(cachedLoans);
+            const activeOnly = parsed.filter(l => l.status !== 'Đã trả');
+            localStorage.setItem('lib_mock_loans', JSON.stringify(activeOnly));
+        }
     } catch (e) {}
 
     setupEventListeners();
@@ -504,24 +512,16 @@ function getMockData(endpoint, method = 'GET', data = null) {
             const loanId = parseInt(returnMatch[1]);
             const loan = mockStore.loans.find(l => l.id == loanId);
             if (!loan) throw new Error("Phiếu mượn không tồn tại");
-            if (loan.status === 'Đã trả') throw new Error("Phiếu mượn này đã được hoàn tất trả sách trước đó");
 
             const todayStr = new Date().toISOString().split('T')[0];
             let fineAmount = 0;
-            let fineStatus = 'N/A';
 
             if (loan.due_date && todayStr > loan.due_date) {
                 const dueDt = new Date(loan.due_date);
                 const retDt = new Date(todayStr);
                 const daysOverdue = Math.max(1, Math.floor((retDt - dueDt) / (1000 * 60 * 60 * 24)));
                 fineAmount = daysOverdue * 5000;
-                fineStatus = 'Chưa nộp';
             }
-
-            loan.status = 'Đã trả';
-            loan.return_date = todayStr;
-            loan.fine_amount = fineAmount;
-            loan.fine_status = fineStatus;
 
             // Restock book
             const book = mockStore.books.find(b => b.id == loan.book_id);
@@ -529,11 +529,14 @@ function getMockData(endpoint, method = 'GET', data = null) {
                 book.available_qty = (book.available_qty || 0) + 1;
             }
 
+            // Delete / remove returned loan from history as requested by user
+            mockStore.loans = mockStore.loans.filter(l => l.id != loanId);
+
             saveMockStore();
 
-            let msg = `Trả sách thành công! (Demo Mode)`;
+            let msg = `Trả sách thành công! Phiếu mượn đã hoàn tất và xóa khỏi danh sách.`;
             if (fineAmount > 0) {
-                msg += ` Sách bị trễ hạn. Số tiền phạt: ${fineAmount.toLocaleString()} VNĐ.`;
+                msg += ` Sách bị trễ hạn (Phạt ${fineAmount.toLocaleString()} VNĐ).`;
             }
             return { message: msg, fine_amount: fineAmount };
         }
@@ -547,18 +550,23 @@ function getMockData(endpoint, method = 'GET', data = null) {
             if (loan.status === 'Đã trả') throw new Error("Sách đã được trả, không thể gia hạn");
             if ((loan.renewal_count || 0) >= 2) throw new Error("Phiếu mượn này đã đạt giới hạn tối đa 2 lần gia hạn!");
 
-            const currentDue = new Date(loan.due_date || Date.now());
-            currentDue.setDate(currentDue.getDate() + 7);
-            const newDueStr = currentDue.toISOString().split('T')[0];
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayDt = new Date(todayStr);
+            const currentDue = new Date(loan.due_date || todayStr);
+
+            // Extend 7 days from TODAY if overdue, or from current due_date if not overdue
+            const baseDt = currentDue > todayDt ? currentDue : todayDt;
+            baseDt.setDate(baseDt.getDate() + 7);
+            const newDueStr = baseDt.toISOString().split('T')[0];
 
             loan.due_date = newDueStr;
             loan.renewal_count = (loan.renewal_count || 0) + 1;
-            if (loan.status === 'Quá hạn') {
-                loan.status = 'Đang mượn';
-            }
+            loan.status = 'Đang mượn';
+            loan.fine_amount = 0;
+            loan.fine_status = 'N/A';
 
             saveMockStore();
-            return { message: `Gia hạn thành công! Hạn trả mới: ${newDueStr} (Lần gia hạn ${loan.renewal_count}/2) (Demo Mode)` };
+            return { message: `Gia hạn thành công! Hạn trả mới: ${newDueStr} (Lần gia hạn ${loan.renewal_count}/2). Trạng thái: Đang mượn` };
         }
 
         // Pay fine
