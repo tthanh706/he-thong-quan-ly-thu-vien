@@ -484,10 +484,14 @@ button, input, select, textarea {
 /* --- MAIN CONTENT AREA --- */
 .main-content {
     margin-left: 280px;
+    width: calc(100% - 280px);
+    max-width: calc(100vw - 280px);
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 /* Top Header */
@@ -498,11 +502,13 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2rem;
+    padding: 0 1.75rem;
     position: sticky;
     top: 0;
     z-index: 90;
     backdrop-filter: blur(12px);
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .header-title h1 {
@@ -637,6 +643,10 @@ button, input, select, textarea {
     padding: 1.5rem;
     box-shadow: var(--shadow-md);
     margin-bottom: 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .panel-header {
@@ -751,10 +761,16 @@ button, input, select, textarea {
 /* --- DATA TABLES --- */
 .table-responsive {
     overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md);
+    padding-bottom: 0.5rem;
 }
 
 .data-table {
     width: 100%;
+    min-width: 980px;
     border-collapse: collapse;
     text-align: left;
     font-size: 0.9rem;
@@ -773,6 +789,11 @@ button, input, select, textarea {
     padding: 0.95rem 1rem;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
+}
+
+.data-table th:last-child, .data-table td:last-child {
+    padding-right: 1.5rem;
+    white-space: nowrap;
 }
 
 .data-table tbody tr:hover {
