@@ -162,10 +162,7 @@ def init_db():
         ('thuthu1', pass_hash_thuthu, 'librarian', 'Thủ thư Nguyễn Thị Mai', 'mai.thuthu@library.edu.vn', None),
         ('docgia1', pass_hash_docgia, 'reader', 'Nguyễn Văn An', 'an.nguyen@email.com', 1),
         ('docgia2', pass_hash_docgia, 'reader', 'Trần Thị Bình', 'binh.tran@email.com', 2),
-        ('docgia3', pass_hash_docgia, 'reader', 'Lê Hoàng Cường', 'cuong.le@email.com', 3),
-        ('dg001', pass_hash_docgia, 'reader', 'Nguyễn Văn An', 'dg001@email.com', 1),
-        ('dg002', pass_hash_docgia, 'reader', 'Trần Thị Bình', 'dg002@email.com', 2),
-        ('dg003', pass_hash_docgia, 'reader', 'Lê Hoàng Cường', 'dg003@email.com', 3),
+        ('docgia3', pass_hash_docgia, 'reader', 'Lê Hoàng Cường', 'cuong.le@email.com', 3)
     ]
     cursor.executemany('''
     INSERT INTO users (username, password_hash, role, full_name, email, reader_id)

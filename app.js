@@ -68,11 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
-    // Auto-clean obsolete mock reader cache if present
+    // Auto-clean obsolete or duplicate mock cache if present
     try {
         ['lib_mock_readers', 'lib_mock_users'].forEach(key => {
             const val = localStorage.getItem(key);
-            if (val && (val.includes('DG04') || val.includes('DG05') || val.includes('DG006') || val.includes('Trương Thị Hạnh') || val.includes('Hồng Ngọc'))) {
+            if (val && (val.includes('dg001') || val.includes('dg002') || val.includes('dg003') || val.includes('DG04') || val.includes('DG05') || val.includes('DG006') || val.includes('Trương Thị Hạnh') || val.includes('Hồng Ngọc'))) {
                 localStorage.removeItem(key);
             }
         });
@@ -1618,7 +1618,16 @@ function renderUsersTable() {
         return;
     }
 
-    tbody.innerHTML = state.users.map(u => {
+    // Deduplicate user list by username and full_name + role to prevent duplicates
+    const seen = new Set();
+    const uniqueUsers = state.users.filter(u => {
+        const key = u.username ? u.username.toLowerCase() : `${(u.full_name || '').toLowerCase()}_${u.role}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    tbody.innerHTML = uniqueUsers.map(u => {
         let roleBadge = `<span class="badge badge-info">Độc giả</span>`;
         if (u.role === 'admin') roleBadge = `<span class="badge badge-danger"><i class="fa-solid fa-user-shield"></i> Admin</span>`;
         if (u.role === 'librarian') roleBadge = `<span class="badge badge-success"><i class="fa-solid fa-user-tie"></i> Thủ thư</span>`;
@@ -1730,7 +1739,15 @@ function renderReadersTable(readersList) {
         return;
     }
 
-    tbody.innerHTML = readersList.map(r => `
+    const seen = new Set();
+    const uniqueReaders = readersList.filter(r => {
+        const key = (r.reader_code || r.id).toString().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    tbody.innerHTML = uniqueReaders.map(r => `
         <tr>
             <td><strong>${r.reader_code}</strong></td>
             <td>
