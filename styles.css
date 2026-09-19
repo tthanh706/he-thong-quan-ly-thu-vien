@@ -1352,9 +1352,16 @@ button, input, select, textarea {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
-    color: #fff;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.92rem;
     min-width: 300px;
     animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast i {
+    font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
 @keyframes slideIn {
@@ -1363,8 +1370,16 @@ button, input, select, textarea {
 }
 
 .toast.success { border-left: 4px solid var(--accent-emerald); }
+.toast.success i { color: var(--accent-emerald); }
+
 .toast.error { border-left: 4px solid var(--accent-rose); }
+.toast.error i { color: var(--accent-rose); }
+
 .toast.warning { border-left: 4px solid var(--accent-amber); }
+.toast.warning i { color: var(--accent-amber); }
+
+.toast.info { border-left: 4px solid var(--accent-blue); }
+.toast.info i { color: var(--accent-blue); }
 
 /* --- PRINT MEDIA STYLES --- */
 @media print {
