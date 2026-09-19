@@ -183,13 +183,27 @@ body.theme-light {
     justify-content: center;
     gap: 0.5rem;
 }
-}
-
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.45);
 }
 
 body {
@@ -494,7 +508,8 @@ button, input, select, textarea {
     flex-direction: column;
     min-height: 100vh;
     box-sizing: border-box;
-    overflow-x: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 /* Top Header */
@@ -505,7 +520,8 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.75rem;
+    padding: 0 2rem;
+    gap: 1.5rem;
     position: sticky;
     top: 0;
     z-index: 90;
@@ -514,13 +530,35 @@ button, input, select, textarea {
     width: 100%;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.header-title {
+    min-width: 0;
+}
+
 .header-title h1 {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
 }
 
 .header-title p {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
 }
 
 .mobile-menu-btn {
@@ -530,18 +568,24 @@ button, input, select, textarea {
     color: var(--text-primary);
     font-size: 1.3rem;
     cursor: pointer;
-    margin-right: 1rem;
+    margin-right: 0.5rem;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1rem;
+    flex-shrink: 0;
 }
 
 .quick-search-box {
     position: relative;
-    width: 280px;
+    width: 220px;
+    transition: width 0.3s ease;
+}
+
+.quick-search-box:focus-within {
+    width: 260px;
 }
 
 .quick-search-box i {
